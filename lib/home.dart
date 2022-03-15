@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -9,89 +8,65 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  String _textoSalvo = "Nada salvo!";
-
-  final TextEditingController _controllerCampo = TextEditingController();
-
-  _salvar() async {
-    String valorDigitado = _controllerCampo.text;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("nome", valorDigitado);
-  }
-
-  _recuperar() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _textoSalvo = prefs.getString("nome") ?? "Sem valor";
-    });
-  }
-
-  _remover() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.remove("nome");
-  }
-
+  List _listaTarefas = ["ir ao mercado", "estudar", "ver Bones"];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Manipulação de dados",
-        ),
+        title: Text('Lista de Tarefas'),
         centerTitle: true,
+        backgroundColor: Colors.purple[400],
       ),
-      body: Container(
-        padding: EdgeInsets.all(32),
-        child: Column(
-          children: [
-            Text(
-              _textoSalvo,
-              style: TextStyle(
-                fontSize: 20,
-              ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('Adicionar Tarefa'),
+                  content: TextField(
+                    decoration: InputDecoration(
+                      labelText: "Digite sua tarefa",
+                    ),
+                    onChanged: (text) {},
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Cancelar',
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        //salvar
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Salvar',
+                      ),
+                    ),
+                  ],
+                );
+              });
+        },
+        backgroundColor: Colors.purple[400],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: _listaTarefas.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_listaTarefas[index]),
+                );
+              },
             ),
-            TextField(
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                labelText: "Digite Algo",
-              ),
-              controller: _controllerCampo,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: _salvar,
-                  child: Text(
-                    "Salvar",
-                    style: TextStyle(
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _recuperar,
-                  child: Text(
-                    "Recuperar",
-                    style: TextStyle(
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _remover,
-                  child: Text(
-                    "Remover",
-                    style: TextStyle(
-                      fontSize: 20,
-                    ),
-                  ),
-                )
-              ],
-            )
-          ],
-        ),
+          )
+        ],
       ),
     );
   }
