@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -8,11 +9,28 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  TextEditingController _controllerCampo = TextEditingController();
+  String _textoSalvo = "Nada salvo!";
 
-  _salvar() {}
+  final TextEditingController _controllerCampo = TextEditingController();
 
-  _recuperar() {}
+  _salvar() async {
+    String valorDigitado = _controllerCampo.text;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("nome", valorDigitado);
+  }
+
+  _recuperar() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _textoSalvo = prefs.getString("nome") ?? "Sem valor";
+    });
+  }
+
+  _remover() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove("nome");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +46,7 @@ class _HomeState extends State<Home> {
         child: Column(
           children: [
             Text(
-              "Nada salvo!",
+              _textoSalvo,
               style: TextStyle(
                 fontSize: 20,
               ),
@@ -40,37 +58,37 @@ class _HomeState extends State<Home> {
               ),
               controller: _controllerCampo,
             ),
-            Padding(
-              padding: const EdgeInsets.all(15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: _salvar,
-                    child: Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Text(
-                        "Salvar",
-                        style: TextStyle(
-                          fontSize: 20,
-                        ),
-                      ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _salvar,
+                  child: Text(
+                    "Salvar",
+                    style: TextStyle(
+                      fontSize: 20,
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: _recuperar,
-                    child: Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Text(
-                        "Recuperar",
-                        style: TextStyle(
-                          fontSize: 20,
-                        ),
-                      ),
+                ),
+                ElevatedButton(
+                  onPressed: _recuperar,
+                  child: Text(
+                    "Recuperar",
+                    style: TextStyle(
+                      fontSize: 20,
                     ),
-                  )
-                ],
-              ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: _remover,
+                  child: Text(
+                    "Remover",
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                )
+              ],
             )
           ],
         ),
