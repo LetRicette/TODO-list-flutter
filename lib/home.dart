@@ -14,6 +14,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   List _listaTarefas = [];
   TextEditingController _controllerTarefa = TextEditingController();
+  Map<String, dynamic> _ultimoTarefaRemovida = Map();
 
   @override
   void initState() {
@@ -61,14 +62,37 @@ class _HomeState extends State<Home> {
   }
 
   Widget criarItemLista(context, index) {
-    final item = _listaTarefas[index]['titulo'];
+    // final item = _listaTarefas[index]['titulo'];
     return Dismissible(
-      key: Key(item),
+      key: Key(DateTime.now()
+          .millisecondsSinceEpoch
+          .toString()), //gera uma key totalmente diferente a cada vez, evitando o erro de key igual quando desfaz a retirada de uma tarefa
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
+        //recuperar úçtimo item excluído
+        _ultimoTarefaRemovida = _listaTarefas[index];
         //Remove item da lista
         _listaTarefas.removeAt(index);
         _salvarArquivo();
+        //snackbar
+        final snackBar = SnackBar(
+          duration: Duration(
+            seconds: 5,
+          ),
+          action: SnackBarAction(
+            label: "Desfazer",
+            onPressed: () {
+              //Insere novamente item removido na lista
+              setState(() {
+                _listaTarefas.insert(index, _ultimoTarefaRemovida);
+              });
+
+              _salvarArquivo();
+            },
+          ),
+          content: Text('Tarefa removida!!'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
       },
       background: Container(
         color: Colors.red,
