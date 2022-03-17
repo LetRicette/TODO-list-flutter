@@ -1,4 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:async';
+import 'dart:convert';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -8,7 +12,54 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List _listaTarefas = ["ir ao mercado", "estudar", "ver Bones"];
+  List _listaTarefas = [];
+  TextEditingController _controllerTarefa = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _lerArquivo().then((dados) {
+      setState(() {
+        _listaTarefas = json.decode(dados);
+      });
+    });
+  }
+
+  Future<File> _getFile() async {
+    final diretorio = await getApplicationDocumentsDirectory();
+    return File("${diretorio.path}/datas.json");
+  }
+
+  _salvarArquivo() async {
+    var arquivo = await _getFile();
+
+    String dados = json.encode(_listaTarefas);
+    arquivo.writeAsString(dados);
+  }
+
+  _salvarTarefa() {
+    String textoDigitado = _controllerTarefa.text;
+    //Criar dados
+    Map<String, dynamic> tarefa = Map();
+    tarefa["titulo"] = textoDigitado;
+    tarefa["realizada"] = false;
+    setState(() {
+      _listaTarefas.add(tarefa);
+    });
+
+    _salvarArquivo();
+    _controllerTarefa.text = "";
+  }
+
+  _lerArquivo() async {
+    try {
+      final arquivo = await _getFile();
+      return arquivo.readAsString();
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,6 +78,7 @@ class _HomeState extends State<Home> {
                 return AlertDialog(
                   title: Text('Adicionar Tarefa'),
                   content: TextField(
+                    controller: _controllerTarefa,
                     decoration: InputDecoration(
                       labelText: "Digite sua tarefa",
                     ),
@@ -42,6 +94,7 @@ class _HomeState extends State<Home> {
                     TextButton(
                       onPressed: () {
                         //salvar
+                        _salvarTarefa();
                         Navigator.pop(context);
                       },
                       child: Text(
@@ -60,8 +113,16 @@ class _HomeState extends State<Home> {
             child: ListView.builder(
               itemCount: _listaTarefas.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(_listaTarefas[index]),
+                return CheckboxListTile(
+                  title: Text(_listaTarefas[index]['titulo']),
+                  value: _listaTarefas[index]['realizada'],
+                  onChanged: (valorAlterado) {
+                    setState(() {
+                      _listaTarefas[index]['realizada'] = valorAlterado;
+                    });
+
+                    _salvarArquivo();
+                  },
                 );
               },
             ),
